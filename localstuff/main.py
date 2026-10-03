@@ -30,7 +30,10 @@ APP_PASSWORD = os.getenv("GMAIL_PASSWORD", "")
 CONTACTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contacts.csv")
 
 # the deployed worker, it takes ?id=<uuid>, hands back a 1x1 gif and records the open
-BEACON_URL = "https://cloudflare-yay.astondsouza369.workers.dev?id="
+# workers.dev subdomain comes from the worker name you picked in wrangler, its public
+# anyway since it goes out in every email, but keeping it an example here so the real
+# one doesnt sit in the repo. swap it when you deploy
+BEACON_URL = "https://your-worker.your-subdomain.workers.dev?id="
 
 
 def looks_like_email(value: str) -> bool:

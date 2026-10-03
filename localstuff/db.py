@@ -23,9 +23,12 @@ try:
 except FileNotFoundError:
     pass
 
+# cluster hostname from the connect string atlas gives you
+# keeping it an example so my real project id doesnt end up on github
+# this has to be the same one in cloudflare_stuff/index.js
 DB_NAME = "mailey"
 COLL_NAME = "mails"
-DB_HOST = "test.ueiwc3g.mongodb.net"
+DB_HOST = "example-cluster.mongodb.net"
 
 
 def connect() -> tuple[MongoClient, Collection]:

@@ -28,8 +28,9 @@ const gif1x1 = [
 	0x3b
 ];
 
-// these 3 need to stay in sync with the ones in localstuff/db.py
-const DB_HOST = 'test.ueiwc3g.mongodb.net';
+// cluster hostname from the atlas connect string, same one as in localstuff/db.py
+// keeping it an example so my real project id doesnt end up on github
+const DB_HOST = 'example-cluster.mongodb.net';
 const DB_NAME = "mailey";
 const COLL_NAME = "mails";
 
