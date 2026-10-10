@@ -1,21 +1,3 @@
-// this is the tracking pixel for the emails main.py sends
-// every email has a hidden 1x1 img in it pointing at this worker with ?id=<email id>
-// when that gets requested we set seen to true and bump open_count on the matching doc
-// then hand back a 1x1 gif
-//
-// two things this file does on purpose:
-//   1. always return the gif even if the id is bad or a secret is missing or mongo is down
-//      nobody should see a broken image, and a tracker thats broken shouldnt take the
-//      email down with it
-//   2. never log the uri, the password is in there
-//
-// DB_HOST / DB_NAME / COLL_NAME below are copies of the ones in localstuff/db.py
-// they have to match since both sides open the same db
-//
-// creds come from worker secrets (wrangler secret put MONGODB_USER) so they show up in env
-// process.env is read too in case nodejs_compat is on and they get injected that way instead
-
-import { MongoClient } from "mongodb";
 
 // real 1x1 transparent gif so nothing renders as a missing image icon
 const gif1x1 = [
@@ -27,12 +9,6 @@ const gif1x1 = [
 	0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00,
 	0x3b
 ];
-
-// cluster hostname from the atlas connect string, same one as in localstuff/db.py
-// keeping it an example so my real project id doesnt end up on github
-const DB_HOST = 'example-cluster.mongodb.net';
-const DB_NAME = "mailey";
-const COLL_NAME = "mails";
 
 // this is the uuid4 shape tracking.py makes, anything else gets ignored instead of
 // queried so some random hit cant reach the db
@@ -50,45 +26,64 @@ const GIF_HEADERS = {
 const gifResponse = () => new Response(new Uint8Array(gif1x1), { headers: GIF_HEADERS });
 
 export default {
-	async fetch(request, env) {
-		const mail_id = new URL(request.url).searchParams.get("id");
+	async fetch(request, env, ctx) {
+		const url = new URL(request.url);
+		if (url.pathname === "/_events" && request.method === "POST") {
+			return getOpenEvents(request, env);
+		}
+
+		const mail_id = url.searchParams.get("id");
 
 		if (!mail_id || !ID_PATTERN.test(mail_id)) {
 			return gifResponse();
 		}
 
-		const user = env.MONGODB_USER ?? process.env.MONGODB_USER;
-		const password = env.MONGODB_PASSWORD ?? process.env.MONGODB_PASSWORD;
-
-		if (!user || !password) {
-			console.log("open skipped, MONGODB_USER / MONGODB_PASSWORD are not set");
+		if (!env.OPEN_EVENTS) {
+			console.log("open skipped, KV binding is not set");
 			return gifResponse();
 		}
 
-		// encodeURIComponent because a password with @ : / or # in it would break the uri otherwise
-		const uri = 'mongodb+srv://'
-			+ encodeURIComponent(user)
-			+ ':'
-			+ encodeURIComponent(password)
-			+ '@'
-			+ DB_HOST
-			+ '/?appName=test';
-
-		const client = new MongoClient(uri);
-		try {
-			const mails = client.db(DB_NAME).collection(COLL_NAME);
-			const result = await mails.updateOne(
-				{ _id: mail_id },
-				{ $set: { seen: true, seen_at: new Date() }, $inc: { open_count: 1 } }
-			);
-			console.log("open", mail_id, "updated:", result.modifiedCount);
-		} catch (err) {
-			// never log the uri in here, just the message
-			console.log("open failed for", mail_id, err.message);
-		} finally {
-			await client.close();
-		}
+		ctx.waitUntil(recordOpen(env.OPEN_EVENTS, mail_id));
 
 		return gifResponse();
 	},
 };
+
+async function getOpenEvents(request, env) {
+	if (!env.OPEN_EVENTS) return Response.json({ error: "KV binding is not set" }, { status: 503 });
+
+	let payload;
+	try {
+		payload = await request.json();
+	} catch {
+		return Response.json({ error: "invalid request" }, { status: 400 });
+	}
+
+	const ids = Array.isArray(payload?.ids) ? payload.ids.slice(0, 500) : [];
+	if (ids.some((id) => typeof id !== "string" || !ID_PATTERN.test(id))) {
+		return Response.json({ error: "invalid id" }, { status: 400 });
+	}
+
+	const values = await Promise.all(ids.map(async (id) => {
+		const value = await env.OPEN_EVENTS.get(`open:${id}`, "json");
+		return value ? [id, value] : null;
+	}));
+	return Response.json(Object.fromEntries(values.filter(Boolean)), {
+		headers: { "Cache-Control": "no-store" }
+	});
+}
+
+async function recordOpen(store, mail_id) {
+	try {
+		const key = `open:${mail_id}`;
+		const previous = await store.get(key, "json");
+		await store.put(key, JSON.stringify({
+			seen: true,
+			seen_at: new Date().toISOString(),
+			open_count: (previous?.open_count ?? 0) + 1
+		}));
+		console.log("open recorded", mail_id);
+	} catch (err) {
+		console.log("open failed for", mail_id, err.message);
+	}
+}

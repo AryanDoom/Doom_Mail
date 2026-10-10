@@ -1,0 +1,13 @@
+localstuff/.env
+**/.env
+**/.env.*
+!**/.env.example
+localstuff/.venv/
+localstuff/.uv-cache/
+localstuff/api.stdout.log
+localstuff/api.stderr.log
+frontend/dev.stdout.log
+frontend/dev.stderr.log
+**/__pycache__/
+**/node_modules/
+**/.wrangler/

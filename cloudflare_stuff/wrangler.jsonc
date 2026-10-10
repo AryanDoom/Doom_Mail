@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "coldmail-tracker",
+  "main": "index.js",
+  "compatibility_date": "2026-10-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "kv_namespaces": [
+    {
+      "binding": "OPEN_EVENTS",
+      "id": "299d1ddea25c4410850f12b476459bc9"
+    }
+  ]
+}

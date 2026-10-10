@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+
+@theme {
+  --color-ink: #e9e8e4;
+  --color-muted: #a09c95;
+
+  --color-faint: #8b867e;
+  /* blue for section headings and small field labels */
+  --color-label: #91a7c7;
+
+  --color-shell: #060606;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* kept, but only for what is actually code: env var names, file paths, endpoint routes
+     and the raw smtplib error text. never for interface copy */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    /* the artwork is fixed behind everything and the page never scrolls sideways */
+    overflow-x: hidden;
+
+    background-color: #000;
+  }
+
+  body {
+    /* keep the fixed artwork visible behind the page */
+    background-color: transparent;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* focus has to stay visible on a near-black canvas, keyboard users are not optional */
+  :focus-visible {
+    outline: 1px solid rgba(233, 231, 226, 0.5);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: rgba(233, 231, 226, 0.14);
+    color: var(--color-ink);
+  }
+
+  /* dark scrollbars so a long email list does not flash a white bar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(233, 231, 226, 0.14) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: rgba(233, 231, 226, 0.14);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+
+  .label {
+    font-size: 0.75rem;
+    line-height: 1.35;
+    letter-spacing: 0.005em;
+    color: var(--color-label);
+  }
+
+  /* thin rule between rows and sections, the only "card" affordance in the whole ui */
+  .hairline {
+    border-color: rgba(233, 231, 226, 0.09);
+  }
+}
+
+/* the artwork drifts a very small amount and only if the visitor is ok with motion.
+   this is the one continuous animation in the app and it is deliberately almost still */
+@keyframes drift {
+  0% {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.09) translate3d(-0.8%, -0.5%, 0);
+  }
+  100% {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-drift {
+  animation: drift 46s ease-in-out infinite;
+}
+
+.animate-rise {
+  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade {
+  animation: fade 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-drift,
+  .animate-rise,
+  .animate-fade {
+    animation: none;
+  }
+}

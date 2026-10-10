@@ -1,10 +1,3 @@
-# prints the send totals thats in mongo right now
-#
-#   python show.py
-#
-# this never writes anything, only reads. five count_documents is easier to follow
-# (and easier to trust) than one aggregation pipeline and at this scale the speed
-# difference doesnt matter
 
 from db import connect
 
