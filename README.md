@@ -2,7 +2,8 @@
 
 I built Coldmail because I wanted (a job) a place to write and send emails, and then track if the email was even opened or not. The dashboard keeps the emails and their statuses together, so I can check what went through and whether it was opened without digging around in different places. The website talks to a Python API, which sends through Gmail and saves the records in MongoDB. A small Cloudflare Worker tracks opens using a tiny image in each email.
 
-![Coldmail dashboard](docs/coldmail-dashboard.png)
+<img width="1915" height="1041" alt="image" src="https://github.com/user-attachments/assets/973f1d66-6e68-46de-98dc-606851ff5e80" />
+
 
 ## What you need
 
