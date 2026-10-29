@@ -5,6 +5,8 @@ I built Coldmail because I wanted (a job) a place to write and send emails, and 
 <img width="1915" height="1041" alt="image" src="https://github.com/user-attachments/assets/973f1d66-6e68-46de-98dc-606851ff5e80" />
 
 
+[![Coldmail project preview](docs/coldmail-preview.gif)](docs/coldmail-demo.mp4)
+
 ## What you need
 
 - Windows with PowerShell
