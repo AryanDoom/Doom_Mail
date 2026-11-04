@@ -3,12 +3,12 @@ $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 $apiDir = Join-Path $root "localstuff"
 $frontendDir = Join-Path $root "frontend"
-$apiExe = Join-Path $apiDir ".venv\Scripts\uvicorn.exe"
+$apiPython = Join-Path $apiDir ".venv\Scripts\python.exe"
 $nodePath = (Get-Command node.exe -ErrorAction Stop).Source
 $npmCmd = Join-Path (Split-Path $nodePath) "npm.cmd"
 
-if (-not (Test-Path $apiExe)) {
-  throw "API environment not found at $apiExe"
+if (-not (Test-Path $apiPython)) {
+  throw "API environment not found at $apiPython"
 }
 
 function Test-LocalPort([int]$port) {
@@ -24,8 +24,8 @@ function Test-LocalPort([int]$port) {
 }
 
 if (-not (Test-LocalPort 8787)) {
-  Start-Process -FilePath $apiExe `
-    -ArgumentList @("api:app", "--host", "127.0.0.1", "--port", "8787") `
+  Start-Process -FilePath $apiPython `
+    -ArgumentList @("-m", "uvicorn", "api:app", "--host", "127.0.0.1", "--port", "8787") `
     -WorkingDirectory $apiDir `
     -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $apiDir "api.stdout.log") `
